@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthSync Web App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        primary: '#0d9488', // Teal 600
+                        secondary: '#0f766e', // Teal 700
+                        dark: '#1e293b', // Slate 800
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Smooth transitions */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden selection:bg-primary selection:text-white text-slate-800">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 z-20 shadow-sm">
+        <div class="p-6 border-b border-gray-100 flex items-center gap-3">
+            <div class="bg-primary text-white p-2 rounded-xl"><i class="fa-solid fa-heart-pulse text-xl"></i></div>
+            <h1 class="text-xl font-extrabold tracking-tight text-dark">HealthSync</h1>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2">
+            <button id="nav-desktop-home" onclick="switchTab('home')" class="w-full flex items-center gap-4 px-4 py-3 rounded-xl bg-teal-50 text-primary font-bold transition-colors">
+                <i class="fa-solid fa-house text-lg w-6"></i> Dashboard
+            </button>
+            <button id="nav-desktop-meds" onclick="switchTab('meds')" class="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-primary font-medium transition-colors">
+                <i class="fa-solid fa-pills text-lg w-6"></i> Medications
+            </button>
+            <button id="nav-desktop-visits" onclick="switchTab('visits')" class="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-primary font-medium transition-colors">
+                <i class="fa-solid fa-calendar-check text-lg w-6"></i> Appointments
+            </button>
+            <button id="nav-desktop-chat" onclick="switchTab('chat')" class="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-primary font-medium transition-colors relative">
+                <i class="fa-solid fa-comment-medical text-lg w-6"></i> Care Team
+                <span class="absolute right-4 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100">
+            <div class="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-gray-50 rounded-xl transition">
+                <img src="https://images.unsplash.com/photo-1581579206913-b541913c32fc?auto=format&fit=crop&w=150&q=80" alt="Profile" class="w-10 h-10 rounded-full object-cover shadow-sm">
+                <div>
+                    <p class="text-sm font-bold text-gray-800">Sarah Jenkins</p>
+                    <p class="text-xs text-gray-500">View Profile</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-gray-50">
+        
+        <!-- TEAL HEADER (For Home, Meds, Visits) -->
+        <header id="main-header" class="bg-primary text-white pt-10 pb-8 px-6 md:px-12 shadow-sm z-10 relative shrink-0">
+            <div class="max-w-4xl mx-auto flex justify-between items-center mb-6">
+                <div>
+                    <p class="text-teal-100 text-sm md:text-base font-medium mb-1" id="header-greeting">Good Morning,</p>
+                    <h2 class="text-3xl md:text-4xl font-extrabold" id="header-title">Sarah J.</h2>
+                </div>
+                <!-- Only show on mobile -->
+                <img src="https://images.unsplash.com/photo-1581579206913-b541913c32fc?auto=format&fit=crop&w=150&q=80" alt="Profile" class="w-12 h-12 rounded-full border-2 border-white object-cover shadow-sm md:hidden">
+            </div>
+            
+            <div class="max-w-4xl mx-auto bg-white/20 p-4 rounded-2xl backdrop-blur-md border border-white/30 flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-teal-50 font-medium tracking-wide mb-1">Next Dose in 2h 30m</p>
+                    <p class="font-bold text-xl">Metformin (500mg)</p>
+                </div>
+                <button class="bg-white text-primary px-4 py-2 rounded-xl font-bold text-sm shadow-sm hover:bg-teal-50 transition">Details</button>
+            </div>
+        </header>
+
+        <!-- SCREENS CONTAINER -->
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-24 md:pb-8">
+            <div class="max-w-4xl mx-auto p-6 md:p-12">
+                
+                <!-- TAB 1: HOME SCREEN -->
+                <div id="screen-home" class="fade-in space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Left Column -->
+                        <div class="space-y-6">
+                            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest border-b pb-2">Today's Schedule</h3>
+                            
+                            <!-- Med Card (Taken) -->
+                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between border-l-4 border-l-primary hover:shadow-md transition">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-teal-50 w-12 h-12 flex items-center justify-center rounded-xl text-primary"><i class="fa-solid fa-pills text-xl"></i></div>
+                                    <div>
+                                        <p class="text-base font-bold text-gray-800">Lisinopril</p>
+                                        <p class="text-sm text-gray-500 mt-1">8:00 AM • After food</p>
+                                    </div>
+                                </div>
+                                <div class="text-green-500 bg-green-50 w-8 h-8 flex justify-center items-center rounded-full"><i class="fa-solid fa-check"></i></div>
+                            </div>
+                            
+                            <!-- Med Card (Pending) -->
+                            <div id="home-med-card" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between border-l-4 border-l-orange-400 hover:shadow-md transition">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-orange-50 w-12 h-12 flex items-center justify-center rounded-xl text-orange-500"><i class="fa-solid fa-syringe text-xl"></i></div>
+                                    <div>
+                                        <p class="text-base font-bold text-gray-800">Insulin Glargine</p>
+                                        <p class="text-sm text-gray-500 mt-1">2:00 PM • 15 Units</p>
+                                    </div>
+                                </div>
+                                <button onclick="markTaken('home-med-card')" class="bg-primary hover:bg-teal-700 transition-colors text-white text-sm px-5 py-2.5 rounded-full font-bold shadow-sm">Take</button>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="space-y-6">
+                            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest border-b pb-2">Quick Actions</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <button onclick="openModal('vitals-modal')" class="bg-blue-50 hover:bg-blue-100 transition-colors p-6 rounded-2xl text-center border border-blue-100 shadow-sm flex flex-col items-center justify-center gap-3">
+                                    <div class="bg-white p-3 rounded-full shadow-sm"><i class="fa-solid fa-stethoscope text-blue-500 text-xl"></i></div>
+                                    <p class="text-sm font-bold text-blue-900">Log Vitals</p>
+                                </button>
+                                <button onclick="switchTab('visits')" class="bg-purple-50 hover:bg-purple-100 transition-colors p-6 rounded-2xl text-center border border-purple-100 shadow-sm flex flex-col items-center justify-center gap-3">
+                                    <div class="bg-white p-3 rounded-full shadow-sm"><i class="fa-solid fa-video text-purple-500 text-xl"></i></div>
+                                    <p class="text-sm font-bold text-purple-900">Telehealth</p>
+                                </button>
+                            </div>
+
+                            <!-- Mini Appointment Card -->
+                            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm mt-4 cursor-pointer hover:border-blue-200 transition" onclick="switchTab('visits')">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <i class="fa-solid fa-calendar-day text-blue-500"></i>
+                                    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Next Appointment</span>
+                                </div>
+                                <p class="font-bold text-gray-800">Dr. Emily Chen</p>
+                                <p class="text-sm text-gray-500 mt-1">Tomorrow at 10:00 AM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: MEDS SCREEN -->
+                <div id="screen-meds" class="hidden fade-in space-y-6 max-w-2xl mx-auto">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h2 class="text-2xl font-bold text-gray-800">My Medications</h2>
+                        <button class="bg-primary text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-md hover:bg-teal-700 transition font-bold text-sm"><i class="fa-solid fa-plus"></i> Add New</button>
+                    </div>
+                    
+                    <!-- Timeline -->
+                    <div class="relative pl-6 border-l-2 border-gray-200 space-y-10 mt-4">
+                        <!-- Taken item -->
+                        <div class="relative">
+                            <div class="absolute -left-[31px] top-1 w-5 h-5 bg-green-500 rounded-full border-4 border-gray-50"></div>
+                            <p class="text-xs font-bold text-gray-400 mb-3 tracking-widest uppercase">Morning</p>
+                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center hover:shadow-md transition">
+                                <div>
+                                    <p class="text-lg font-bold text-gray-800">Lisinopril (10mg)</p>
+                                    <p class="text-sm text-gray-500 mt-1">For Blood Pressure</p>
+                                </div>
+                                <span class="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg font-bold text-sm"><i class="fa-solid fa-check mr-2"></i>Taken at 8:15 AM</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Due item -->
+                        <div class="relative">
+                            <div class="absolute -left-[31px] top-1 w-5 h-5 bg-orange-400 rounded-full border-4 border-gray-50 shadow-[0_0_10px_rgba(251,146,60,0.5)]"></div>
+                            <p class="text-xs font-bold text-orange-500 mb-3 tracking-widest uppercase">Afternoon - Due Soon</p>
+                            <div id="med-glargine" class="bg-white p-6 rounded-2xl shadow-md border-l-4 border-l-orange-400 border border-gray-100 hover:shadow-lg transition">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <p class="text-lg font-bold text-gray-800">Insulin Glargine</p>
+                                        <p class="text-sm text-gray-500 mt-1">15 units via Pen</p>
+                                    </div>
+                                    <div class="bg-orange-50 p-3 rounded-xl"><i class="fa-solid fa-prescription-bottle-medical text-orange-400 text-xl"></i></div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button class="flex-1 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-200 transition">Snooze</button>
+                                    <button onclick="markTakenBig('med-glargine')" class="flex-[2] bg-primary text-white text-sm py-3 rounded-xl font-bold shadow-sm hover:bg-teal-700 transition-colors">Log as Taken</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Evening item -->
+                        <div class="relative opacity-60">
+                            <div class="absolute -left-[31px] top-1 w-5 h-5 bg-gray-300 rounded-full border-4 border-gray-50"></div>
+                            <p class="text-xs font-bold text-gray-400 mb-3 tracking-widest uppercase">Evening</p>
+                            <div class="bg-white p-5 rounded-2xl border border-gray-200">
+                                <p class="text-lg font-bold text-gray-800">Atorvastatin (20mg)</p>
+                                <p class="text-sm text-gray-500 mt-1">Before bed with water</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: VISITS SCREEN -->
+                <div id="screen-visits" class="hidden fade-in space-y-6 max-w-3xl mx-auto">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h2 class="text-2xl font-bold text-gray-800">Appointments</h2>
+                        <button class="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-gray-200 transition font-bold text-sm"><i class="fa-solid fa-calendar-plus"></i> Book Visit</button>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100 shadow-sm mb-8">
+                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                            <div class="flex items-center gap-6">
+                                <div class="bg-white text-center p-3 rounded-2xl shadow-sm w-20 border border-blue-50 shrink-0">
+                                    <p class="text-xs text-gray-500 uppercase font-bold mb-1">Oct</p>
+                                    <p class="text-3xl font-extrabold text-primary leading-none">24</p>
+                                </div>
+                                <div>
+                                    <span class="inline-flex items-center gap-1.5 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2"><i class="fa-solid fa-video"></i> Telehealth</span>
+                                    <p class="text-xl font-bold text-gray-800">Dr. Emily Chen</p>
+                                    <p class="text-sm text-gray-600 mt-1"><i class="fa-regular fa-clock mr-1"></i> 10:00 AM - 10:30 AM</p>
+                                </div>
+                            </div>
+                            <div class="w-full md:w-auto flex flex-col sm:flex-row gap-3">
+                                <button onclick="openModal('reschedule-modal')" class="bg-white border border-gray-200 py-2.5 px-6 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 shadow-sm transition">Reschedule</button>
+                                <button onclick="switchTab('chat')" class="bg-primary text-white py-2.5 px-6 rounded-xl text-sm font-bold shadow-md shadow-primary/30 hover:bg-teal-700 transition">Join Call Room</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mt-10 mb-4 border-b pb-2">Past History</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4 hover:shadow-md transition">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-gray-50 w-12 h-12 flex items-center justify-center rounded-xl text-gray-400"><i class="fa-solid fa-user-doctor text-xl"></i></div>
+                                <div class="flex-1">
+                                    <p class="text-base font-bold text-gray-800">Dr. Alan Smith</p>
+                                    <p class="text-sm text-gray-500 mt-0.5">Sept 12, 2025 • Clinic Visit</p>
+                                </div>
+                            </div>
+                            <button class="w-full bg-gray-50 text-gray-600 font-bold py-2 rounded-lg hover:bg-gray-100 text-sm">View Doctor Notes</button>
+                        </div>
+                        
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4 hover:shadow-md transition">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-blue-50 w-12 h-12 flex items-center justify-center rounded-xl text-blue-400"><i class="fa-solid fa-video text-xl"></i></div>
+                                <div class="flex-1">
+                                    <p class="text-base font-bold text-gray-800">Dr. Emily Chen</p>
+                                    <p class="text-sm text-gray-500 mt-0.5">Aug 03, 2025 • Telehealth</p>
+                                </div>
+                            </div>
+                            <button class="w-full bg-gray-50 text-gray-600 font-bold py-2 rounded-lg hover:bg-gray-100 text-sm">View Prescription</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: CHAT SCREEN (Full Height absolute overlay) -->
+        <div id="screen-chat" class="hidden absolute inset-0 z-30 flex-col bg-gray-50 fade-in">
+            <!-- Chat Header -->
+            <div class="bg-white pt-6 md:pt-8 pb-4 px-6 border-b border-gray-200 flex items-center justify-between shadow-sm shrink-0">
+                <div class="flex items-center gap-4">
+                    <button onclick="switchTab('home')" class="md:hidden w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-full transition"><i class="fa-solid fa-chevron-left text-xl"></i></button>
+                    <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=100&q=80" class="w-12 h-12 rounded-full object-cover shadow-sm">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-gray-800">Dr. Emily Chen</h2>
+                        <p class="text-xs text-green-500 font-bold uppercase tracking-widest flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Online</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button class="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-full transition"><i class="fa-solid fa-phone"></i></button>
+                    <button class="w-10 h-10 flex items-center justify-center text-white bg-primary hover:bg-teal-700 rounded-full transition shadow-sm"><i class="fa-solid fa-video"></i></button>
+                </div>
+            </div>
+
+            <!-- Chat Messages Area -->
+            <div id="chat-messages" class="flex-1 p-6 overflow-y-auto space-y-6 pb-24 md:pb-6 flex flex-col">
+                <div class="text-center text-xs font-bold text-gray-400 uppercase tracking-widest my-4">Today</div>
+                
+                <!-- Doctor Message -->
+                <div class="flex gap-4 items-end self-start max-w-[85%] md:max-w-2xl">
+                    <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=100&q=80" class="w-8 h-8 rounded-full object-cover hidden sm:block">
+                    <div class="bg-white p-4 rounded-2xl rounded-bl-sm shadow-sm border border-gray-200">
+                        <p class="text-sm md:text-base text-gray-700 leading-relaxed">Hi Sarah, I noticed your blood pressure readings were slightly elevated yesterday. How are you feeling?</p>
+                        <span class="text-[10px] text-gray-400 mt-2 block">09:41 AM</span>
+                    </div>
+                </div>
+
+                <!-- Patient Message -->
+                <div class="flex gap-4 items-end self-end max-w-[85%] md:max-w-2xl">
+                    <div class="bg-primary text-white p-4 rounded-2xl rounded-br-sm shadow-md">
+                        <p class="text-sm md:text-base leading-relaxed">I was feeling a bit dizzy, but I'm better today. Do I need to come in?</p>
+                        <span class="text-[10px] text-teal-100 mt-2 block text-right">09:45 AM</span>
+                    </div>
+                </div>
+
+                <!-- Doctor Message + Card -->
+                <div class="flex gap-4 items-end self-start max-w-[85%] md:max-w-2xl">
+                    <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=100&q=80" class="w-8 h-8 rounded-full object-cover hidden sm:block opacity-0">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 w-full">
+                        <div class="flex items-center gap-2 mb-3 text-primary text-sm font-bold uppercase tracking-wide">
+                            <i class="fa-regular fa-calendar-plus"></i> Booking Request
+                        </div>
+                        <p class="text-sm md:text-base text-gray-700 mb-5 leading-relaxed">Let's do a quick video call tomorrow morning just to be safe.</p>
+                        <button onclick="openModal('reschedule-modal')" class="w-full bg-blue-50 text-blue-700 border border-blue-200 py-3 rounded-xl text-sm font-bold transition hover:bg-blue-100 shadow-sm">Select a Time Slot</button>
+                        <span class="text-[10px] text-gray-400 mt-3 block">09:47 AM</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input Bar -->
+            <div class="bg-white border-t border-gray-200 p-4 md:p-6 shrink-0 z-20 absolute bottom-16 md:bottom-0 w-full left-0">
+                <form id="chat-form" onsubmit="handleChatSubmit(event)" class="max-w-5xl mx-auto flex items-center gap-3">
+                    <button type="button" class="w-10 h-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition flex items-center justify-center shrink-0"><i class="fa-solid fa-paperclip text-xl"></i></button>
+                    <input type="text" id="chat-input" placeholder="Type a message to Dr. Chen..." class="flex-1 bg-gray-100 border-none rounded-full h-12 px-6 focus:outline-none focus:ring-2 focus:ring-primary/50 text-gray-700 text-sm md:text-base transition">
+                    <button type="submit" class="bg-primary w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md hover:bg-teal-700 transition transform hover:scale-105 shrink-0">
+                        <i class="fa-solid fa-paper-plane text-lg ml-[-2px]"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around items-center h-16 z-40 px-2 pb-safe shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+        <button id="nav-mobile-home" onclick="switchTab('home')" class="flex-1 flex flex-col items-center justify-center text-primary transition-colors outline-none py-2">
+            <i class="fa-solid fa-house mb-1 text-xl"></i>
+            <span class="text-[10px] font-bold tracking-wide">Home</span>
+        </button>
+        <button id="nav-mobile-meds" onclick="switchTab('meds')" class="flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-primary transition-colors outline-none py-2">
+            <i class="fa-solid fa-pills mb-1 text-xl"></i>
+            <span class="text-[10px] font-bold tracking-wide">Meds</span>
+        </button>
+        <button id="nav-mobile-visits" onclick="switchTab('visits')" class="flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-primary transition-colors outline-none py-2">
+            <i class="fa-solid fa-calendar-check mb-1 text-xl"></i>
+            <span class="text-[10px] font-bold tracking-wide">Visits</span>
+        </button>
+        <button id="nav-mobile-chat" onclick="switchTab('chat')" class="flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-primary transition-colors outline-none py-2 relative">
+            <span class="absolute top-2 right-6 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+            <i class="fa-solid fa-comment-medical mb-1 text-xl"></i>
+            <span class="text-[10px] font-bold tracking-wide">Chat</span>
+        </button>
+    </nav>
+
+    <!-- OVERLAY MODALS -->
+    <!-- Log Vitals Modal -->
+    <div id="vitals-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 opacity-0 transition-opacity">
+        <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300" id="vitals-modal-content">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-xl font-extrabold text-gray-800"><i class="fa-solid fa-stethoscope text-blue-500 mr-2"></i> Log Daily Vitals</h3>
+                <button onclick="closeModal('vitals-modal')" class="text-gray-400 hover:bg-gray-100 p-2 rounded-full"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-5">
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-2">Blood Pressure (mmHg)</label>
+                    <div class="flex gap-3">
+                        <input type="number" placeholder="Sys (e.g. 120)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-gray-800 font-medium">
+                        <span class="text-2xl text-gray-300 font-light self-center">/</span>
+                        <input type="number" placeholder="Dia (e.g. 80)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-gray-800 font-medium">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-2">Blood Sugar (mg/dL)</label>
+                    <input type="number" placeholder="e.g. 105" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-gray-800 font-medium">
+                </div>
+            </div>
+            <div class="p-6 bg-gray-50 rounded-b-3xl border-t border-gray-100 flex gap-3">
+                <button onclick="closeModal('vitals-modal')" class="flex-1 px-6 py-3 rounded-xl font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition">Cancel</button>
+                <button onclick="submitVitals()" class="flex-1 px-6 py-3 rounded-xl font-bold text-white bg-primary hover:bg-teal-700 shadow-md transition">Save Log</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // --- Navigation Logic ---
+        function switchTab(tabId) {
+            // Arrays of elements to update
+            const navIds = ['home', 'meds', 'visits', 'chat'];
+            
+            // 1. Reset Mobile Nav
+            navIds.forEach(id => {
+                const btn = document.getElementById('nav-mobile-' + id);
+                if(btn) {
+                    btn.classList.remove('text-primary');
+                    btn.classList.add('text-gray-400');
+                }
+            });
+
+            // 2. Reset Desktop Nav
+            navIds.forEach(id => {
+                const btn = document.getElementById('nav-desktop-' + id);
+                if(btn) {
+                    btn.classList.remove('bg-teal-50', 'text-primary');
+                    btn.classList.add('text-gray-500');
+                }
+            });
+
+            // 3. Set Active State
+            const activeMobile = document.getElementById('nav-mobile-' + tabId);
+            if(activeMobile) { activeMobile.classList.remove('text-gray-400'); activeMobile.classList.add('text-primary'); }
+            
+            const activeDesktop = document.getElementById('nav-desktop-' + tabId);
+            if(activeDesktop) { activeDesktop.classList.remove('text-gray-500'); activeDesktop.classList.add('bg-teal-50', 'text-primary'); }
+
+            // 4. Handle Content Switching
+            const header = document.getElementById('main-header');
+            const chatScreen = document.getElementById('screen-chat');
+            const mainScreens = ['home', 'meds', 'visits'];
+
+            if (tabId === 'chat') {
+                header.classList.add('hidden');
+                mainScreens.forEach(id => document.getElementById('screen-' + id).classList.add('hidden'));
+                chatScreen.classList.remove('hidden');
+                chatScreen.classList.add('flex');
+                scrollToBottom();
+            } else {
+                header.classList.remove('hidden');
+                chatScreen.classList.add('hidden');
+                chatScreen.classList.remove('flex');
+                
+                mainScreens.forEach(id => document.getElementById('screen-' + id).classList.add('hidden'));
+                document.getElementById('screen-' + tabId).classList.remove('hidden');
+
+                // Update Header Text dynamically
+                if(tabId === 'home') {
+                    document.getElementById('header-greeting').textContent = 'Good Morning,';
+                    document.getElementById('header-title').textContent = 'Sarah J.';
+                } else if (tabId === 'meds') {
+                    document.getElementById('header-greeting').textContent = 'Your Plan';
+                    document.getElementById('header-title').textContent = 'Medications';
+                } else if (tabId === 'visits') {
+                    document.getElementById('header-greeting').textContent = 'Care Team';
+                    document.getElementById('header-title').textContent = 'Appointments';
+                }
+            }
+        }
+
+        // --- Interaction Logic ---
+        function markTaken(cardId) {
+            const card = document.getElementById(cardId);
+            if(!card) return;
+            // Update the card visually to represent success
+            card.className = "bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between border-l-4 border-l-primary transition-all duration-500";
+            card.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <div class="bg-teal-50 w-12 h-12 flex items-center justify-center rounded-xl text-primary"><i class="fa-solid fa-syringe text-xl"></i></div>
+                    <div>
+                        <p class="text-base font-bold text-gray-800 line-through decoration-2 decoration-teal-500/50">Insulin Glargine</p>
+                        <p class="text-sm text-gray-500 mt-1">Logged today at ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                    </div>
+                </div>
+                <div class="text-green-500 bg-green-50 w-8 h-8 flex justify-center items-center rounded-full pop-in"><i class="fa-solid fa-check"></i></div>
+            `;
+        }
+
+        function markTakenBig(cardId) {
+            const card = document.getElementById(cardId);
+            if(!card) return;
+            card.className = "bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-primary transition-all duration-500";
+            card.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-lg font-bold text-gray-800 line-through decoration-2 decoration-teal-500/50">Insulin Glargine</p>
+                        <p class="text-sm text-gray-500 mt-1">15 units via Pen</p>
+                    </div>
+                    <span class="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg font-bold text-sm flex items-center"><i class="fa-solid fa-check mr-2"></i>Taken at ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                </div>
+            `;
+        }
+
+        // --- Chat Logic ---
+        function handleChatSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            const chatBox = document.getElementById('chat-messages');
+            const timeString = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            // 1. Add User Message
+            const userHTML = `
+                <div class="flex gap-4 items-end self-end max-w-[85%] md:max-w-2xl fade-in">
+                    <div class="bg-primary text-white p-4 rounded-2xl rounded-br-sm shadow-md">
+                        <p class="text-sm md:text-base leading-relaxed">${msg}</p>
+                        <span class="text-[10px] text-teal-100 mt-2 block text-right">${timeString}</span>
+                    </div>
+                </div>
+            `;
+            chatBox.insertAdjacentHTML('beforeend', userHTML);
+            input.value = '';
+            scrollToBottom();
+
+            // 2. Simulate Typing Indicator
+            const typingId = 'typing-' + Date.now();
+            const typingHTML = `
+                <div id="${typingId}" class="flex gap-4 items-end self-start mt-2 fade-in">
+                    <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=100&q=80" class="w-8 h-8 rounded-full object-cover hidden sm:block">
+                    <div class="bg-gray-100 p-3 rounded-2xl rounded-bl-sm flex gap-1 items-center h-10 px-4">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => {
+                chatBox.insertAdjacentHTML('beforeend', typingHTML);
+                scrollToBottom();
+                
+                // 3. Simulate Doctor Reply after 2.5s
+                setTimeout(() => {
+                    document.getElementById(typingId).remove();
+                    const docReply = `
+                        <div class="flex gap-4 items-end self-start max-w-[85%] md:max-w-2xl fade-in">
+                            <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=100&q=80" class="w-8 h-8 rounded-full object-cover hidden sm:block">
+                            <div class="bg-white p-4 rounded-2xl rounded-bl-sm shadow-sm border border-gray-200">
+                                <p class="text-sm md:text-base text-gray-700 leading-relaxed">Thank you for letting me know. Let's monitor it today and discuss it during our call tomorrow.</p>
+                                <span class="text-[10px] text-gray-400 mt-2 block">Just now</span>
+                            </div>
+                        </div>
+                    `;
+                    chatBox.insertAdjacentHTML('beforeend', docReply);
+                    scrollToBottom();
+                }, 2500);
+
+            }, 500);
+        }
+
+        function scrollToBottom() {
+            const chatBox = document.getElementById('chat-messages');
+            setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 50);
+        }
+
+        // --- Modal Logic ---
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            const content = document.getElementById(id + '-content');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // Small delay to allow display:flex to apply before changing opacity
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+                if(content) {
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                }
+            }, 10);
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            const content = document.getElementById(id + '-content');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            if(content) {
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+            }
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 300); // Wait for transition
+        }
+
+        function submitVitals() {
+            closeModal('vitals-modal');
+            // Fake toast notification
+            const toast = document.createElement('div');
+            toast.className = "fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full font-bold text-sm shadow-2xl z-50 fade-in flex items-center gap-2";
+            toast.innerHTML = "<i class='fa-solid fa-check-circle text-green-400'></i> Vitals logged successfully!";
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
